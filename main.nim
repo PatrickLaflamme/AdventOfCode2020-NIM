@@ -3,14 +3,16 @@ import utils/savedSessionId
 import solutions/day1, 
        solutions/day2, 
        solutions/day3,
-       solutions/day4
+       solutions/day4,
+       solutions/day5
 import utils/adventOfCodeClient
 
 let solutions = @[ 
   (client: AoCClient, submit: bool) => day1(client, submit), 
   (client: AoCClient, submit: bool) => day2(client, submit),
   (client: AoCClient, submit: bool) => day3(client, submit),
-  (client: AoCClient, submit: bool) => day4(client, submit)
+  (client: AoCClient, submit: bool) => day4(client, submit),
+  (client: AoCClient, submit: bool) => day5(client, submit)
 ]
 
 var sessionId: string
@@ -23,6 +25,7 @@ while true:
     sessionId = getSessionIdForAlias(sessionAlias)
     client = getClientWithSessionId(sessionId)
   except HttpRequestError:
+    echo getCurrentException().msg
     echo fmt("[ {sessionAlias} ] isn't configured as a session alias yet. Would you like to configure it as a new saved session (Y/n)?")
     if readLine(stdin).toLower() == "y":
       echo fmt("""

@@ -32,7 +32,7 @@ proc submitSolution*(client: AoCClient, day: int, level: int, answer: string): s
     client.httpclient.headers = defaultHeaders
 
     if response.contains("That's not the right answer"):
-      echo "Looks like the answer for part {level} on day {day} is incorrect. Adjust the solution and try again"
+      echo fmt("Looks like the answer for part {level} on day {day} is incorrect. Adjust the solution and try again")
     elif response.contains("Did you already complete it") or response.contains("Both parts of this puzzle are complete"):
       echo fmt("Looks like you already completed the challenge for part {level} on day {day}...")
     elif response.contains("That's the right answer"):
