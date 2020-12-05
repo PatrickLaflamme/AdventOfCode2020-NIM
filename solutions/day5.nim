@@ -1,4 +1,4 @@
-import math, strformat, strutils, sequtils, sugar, algorithm
+import math, strformat, strutils, sequtils, sugar
 import ../utils/adventOfCodeClient
 
 type 
