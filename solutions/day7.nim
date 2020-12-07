@@ -52,9 +52,9 @@ proc buildBagGraph(input: string): TableRef[string, Bag] =
   bagsByColor
 
 proc partA(input: string): int =
-  let bagNetwork = buildBagGraph(input)
+  let bagGraph = buildBagGraph(input)
   var bagsToCheck = initDeque[Bag]()
-  for bag in bagNetwork["shiny gold"].parentBags:
+  for bag in bagGraph["shiny gold"].parentBags:
     bagsToCheck.addLast(bag)
   var bagsContainingShinyGold: seq[Bag] = @[]
   while bagsToCheck.len > 0:
@@ -65,9 +65,9 @@ proc partA(input: string): int =
   bagsContainingShinyGold.deduplicate().len
 
 proc partB(input: string): int =
-  let bagNetwork = buildBagGraph(input)
+  let bagGraph = buildBagGraph(input)
   var bagsToCheck = initDeque[tuple[bag: Bag, count: int]]()
-  for (bag, count) in bagNetwork["shiny gold"].childBags.pairs:
+  for (bag, count) in bagGraph["shiny gold"].childBags.pairs:
     bagsToCheck.addLast((bag: bag, count: count))
   var requiredBags = 0
   while bagsToCheck.len > 0:
