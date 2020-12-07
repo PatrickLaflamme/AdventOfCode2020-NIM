@@ -1,4 +1,10 @@
-import  deques, hashes, sequtils, strformat, strutils, sugar, tables
+import deques,
+       hashes, 
+       sequtils, 
+       strformat, 
+       strutils, 
+       sugar, 
+       tables
 import ../utils/adventOfCodeClient
 
 type Bag = ref object
@@ -60,17 +66,15 @@ proc partA(input: string): int =
 
 proc partB(input: string): int =
   let bagNetwork = buildBagGraph(input)
-  var bagsToCheck = initDeque[Bag]()
+  var bagsToCheck = initDeque[tuple[bag: Bag, count: int]]()
   for (bag, count) in bagNetwork["shiny gold"].childBags.pairs:
-    for _ in 1..count:
-      bagsToCheck.addLast(bag)
+    bagsToCheck.addLast((bag: bag, count: count))
   var requiredBags = 0
   while bagsToCheck.len > 0:
-    let currentBag = bagsToCheck.popFirst()
+    let (currentBag, currentBagCount) = bagsToCheck.popFirst()
     for (bag, count) in currentBag.childBags.pairs:
-      for _ in 1..count:
-        bagsToCheck.addLast(bag)
-    requiredBags += 1
+      bagsToCheck.addLast((bag: bag, count: count * currentBagCount))
+    requiredBags += currentBagCount
   requiredBags
 
 proc day7*(client: AoCClient, submit: bool) =
