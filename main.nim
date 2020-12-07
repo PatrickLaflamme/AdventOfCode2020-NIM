@@ -5,7 +5,8 @@ import solutions/day1,
        solutions/day3,
        solutions/day4,
        solutions/day5,
-       solutions/day6
+       solutions/day6,
+       solutions/day7
 import utils/adventOfCodeClient
 
 let solutions = @[ 
@@ -14,7 +15,8 @@ let solutions = @[
   (client: AoCClient, submit: bool) => day3(client, submit),
   (client: AoCClient, submit: bool) => day4(client, submit),
   (client: AoCClient, submit: bool) => day5(client, submit),
-  (client: AoCClient, submit: bool) => day6(client, submit)
+  (client: AoCClient, submit: bool) => day6(client, submit),
+  (client: AoCClient, submit: bool) => day7(client, submit)
 ]
 
 var sessionId: string
