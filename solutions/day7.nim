@@ -1,5 +1,6 @@
 import deques,
-       hashes, 
+       hashes,
+       re, 
        sequtils, 
        strformat, 
        strutils, 
@@ -29,26 +30,20 @@ proc initBag(color: string): Bag =
 
 proc buildBagGraph(input: string): TableRef[string, Bag] =
   var bagsByColor = newTable[string, Bag]()
-  let bagContentStatements = input.splitLines().filter(x => x != "")
-  for bagContentStatement in bagContentStatements:
-    let splitBagContentsStatement = bagContentStatement.split(" contain ")
-    var containingBagColor = splitBagContentsStatement[0]
-    var contents = splitBagContentsStatement[1]
-    containingBagColor.removeSuffix(" bags")
-    var containingBag = bagsByColor.mgetOrPut(containingBagColor, initBag(containingBagColor))
-    for storedBagDesc in contents.split(", "):
-      var mutableStoredBagDesc = storedBagDesc
-      mutableStoredBagDesc.removeSuffix(".")
-      mutableStoredBagDesc.removeSuffix(" bags")
-      mutableStoredBagDesc.removeSuffix(" bag")
-      if mutableStoredBagDesc == "no other":
-        continue
-      let splitStoredBagDesc = mutableStoredBagDesc.split(" ")
-      let bagCount = splitStoredBagDesc[0].parseInt()
-      let bagColor = splitStoredBagDesc[1..^1].join(" ")
-      var childBag = bagsByColor.mgetOrPut(bagColor, initBag(bagColor))
-      childBag.parentBags.add(containingBag)
-      containingBag.childBags[childBag] = bagCount
+  let bagRules = input.splitLines().filter(x => x != "")
+  let parentBagColorRE = re".*(?= bags contain)"
+  let childBagCountsRE = re"[0-9]+(?=[a-zA-Z ]+ bag[s]{0,1})"
+  let childBagColorsRE = re"(?<=[0-9] )[a-zA-Z ]+(?= bag[s]{0,1})"
+  for rule in bagRules:
+    var parentBagColor = rule.findAll(parentBagColorRE)[0]
+    var parentBag = bagsByColor.mgetOrPut(parentBagColor, initBag(parentBagColor))
+    let childBagColors = rule.findAll(childBagColorsRE)
+    let childBagCounts = rule.findAll(childBagCountsRE)
+    for (childBagColor, childBagCountString) in zip(childBagColors, childBagCounts):
+      let childBagCount = childBagCountString.parseInt()
+      var childBag = bagsByColor.mgetOrPut(childBagColor, initBag(childBagColor))
+      childBag.parentBags.add(parentBag)
+      parentBag.childBags[childBag] = childBagCount
   bagsByColor
 
 proc partA(input: string): int =

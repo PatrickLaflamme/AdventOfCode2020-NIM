@@ -26,9 +26,9 @@ proc submitSolution*(client: AoCClient, day: int, level: int, answer: string): s
   let data = fmt("level={intToStr(level)}&answer={answer}")
   let defaultHeaders = client.httpclient.headers
   client.httpclient.headers["content-type"] = "application/x-www-form-urlencoded"
-  let response = client.httpclient.postContent(url, body=data)
 
   try:
+    let response = client.httpclient.postContent(url, body=data)
     client.httpclient.headers = defaultHeaders
 
     if response.contains("That's not the right answer"):
@@ -43,4 +43,5 @@ proc submitSolution*(client: AoCClient, day: int, level: int, answer: string): s
       echo fmt("something went wrong... {response}")
   except:
     echo "Looks like something went wrong here. Maybe the session Id is invalid? Exception below:\n"
+    client.httpclient.headers = defaultHeaders
     raise
