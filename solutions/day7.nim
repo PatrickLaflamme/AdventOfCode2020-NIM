@@ -21,7 +21,7 @@ proc initBag(color: string): Bag =
   bag.childBags = newTable[Bag, int]()
   bag
 
-proc buildBagNetwork(input: string): TableRef[string, Bag] =
+proc buildBagGraph(input: string): TableRef[string, Bag] =
   var bagsByColor = newTable[string, Bag]()
   let bagContentStatements = input.splitLines().filter(x => x != "")
   for bagContentStatement in bagContentStatements:
@@ -46,7 +46,7 @@ proc buildBagNetwork(input: string): TableRef[string, Bag] =
   bagsByColor
 
 proc partA(input: string): int =
-  let bagNetwork = buildBagNetwork(input)
+  let bagNetwork = buildBagGraph(input)
   var bagsToCheck = initDeque[Bag]()
   for bag in bagNetwork["shiny gold"].parentBags:
     bagsToCheck.addLast(bag)
@@ -59,7 +59,7 @@ proc partA(input: string): int =
   bagsContainingShinyGold.deduplicate().len
 
 proc partB(input: string): int =
-  let bagNetwork = buildBagNetwork(input)
+  let bagNetwork = buildBagGraph(input)
   var bagsToCheck = initDeque[Bag]()
   for (bag, count) in bagNetwork["shiny gold"].childBags.pairs:
     for _ in 1..count:
@@ -113,7 +113,7 @@ dark blue bags contain 2 dark violet bags.
 dark violet bags contain no other bags.
 """
 
-doAssert buildBagNetwork(testInput).len == 9
+doAssert buildBagGraph(testInput).len == 9
 doAssert partA(testInput) == 4
 doAssert partB(testInput) == 32
 doAssert partB(testInput2) == 126
