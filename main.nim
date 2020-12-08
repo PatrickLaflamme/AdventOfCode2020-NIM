@@ -58,8 +58,9 @@ and paste it into the prompt. It will then be saved and associated with the sess
 
   echo fmt(
     """
+
 ****************************************
-Solution for day {day}
+Answers for day {day}
 ****************************************
     """
   )
