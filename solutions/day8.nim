@@ -1,4 +1,4 @@
-import sequtils, sets, strformat, strutils, sugar, system
+import deques, sequtils, sets, strformat, strutils, sugar, system
 import ../utils/adventOfCodeClient
 
 type 
@@ -10,6 +10,15 @@ type
   Instruction = object
     action: Action
     value: int
+  
+  InstructionNode = ref object
+    index: int
+    instruction: Instruction
+    parentNodes: seq[InstructionNode]
+    childNode: InstructionNode
+    alternativeChildNode: InstructionNode
+    isConnectedToEnd: bool
+    isEnd: bool
   
   SolveFailureError = object of ValueError
 
@@ -40,12 +49,65 @@ proc toInstructionSet(input: string): seq[Instruction] =
     .filter(line => line.len > 0)
     .map(line => Instruction(action: line.split(" ")[0].toAction, value: line.split[1].parseInt))
 
-proc flippableIndices(instructionSet: seq[Instruction]): seq[int] =
-  var flippableIndices: seq[int] = @[]
-  for index, instruction in instructionSet:
-    if instruction.action == Action.jmp or instruction.action == Action.nop:
-      flippableIndices.add(index)
-  flippableIndices
+proc toInstructionGraph(instructionSet: seq[Instruction]): seq[InstructionNode] =
+  var mutableInstructionSet = instructionSet
+
+  var endNode: InstructionNode
+  new(endNode)
+  endNode.isEnd = true
+  endNode.isConnectedToEnd = true
+  endNode.parentNodes = @[]
+
+  let instructionGraph = mutableInstructionSet.map(x => (block:
+    var node: InstructionNode
+    new(node)
+    node.instruction = x
+    node.parentNodes = @[]
+    node
+  ))
+
+  # Build graph with each element pointing to is parents, its child, and its alternativeChild (if any)
+  for index, node in instructionGraph:
+    node.index = index
+    if node.instruction.action == Action.jmp:
+      if index + node.instruction.value < instructionGraph.len:
+        node.childNode = instructionGraph[index + node.instruction.value]
+      else:
+        node.childNode = endNode
+        node.isConnectedToEnd = true
+      node.childNode.parentNodes.add(node)
+
+      if index + 1 < instructionGraph.len:
+        node.alternativeChildNode = instructionGraph[index + 1]
+      else:
+        node.alternativeChildNode = endNode
+      continue
+
+    if node.instruction.action == Action.nop:
+      if index + node.instruction.value < instructionGraph.len:
+        node.alternativeChildNode = instructionGraph[index + node.instruction.value]
+      else:
+        node.alternativeChildNode = endNode
+        
+    if index + 1 < instructionGraph.len:
+        node.childNode = instructionGraph[index + 1]
+    else:
+      node.childNode = endNode
+      node.isConnectedToEnd = true
+    node.childNode.parentNodes.add(node)
+  
+  # ensure that any node whose child and further children ultimately connect to the end are marked as such
+  var connectedToEndNodeDeque = initDeque[InstructionNode]()
+  for node in endNode.parentNodes:
+    connectedToEndNodeDeque.addLast(node)
+  while connectedToEndNodeDeque.len > 0:
+    var nodeOfInterest = connectedToEndNodeDeque.popFirst()
+    for parentNode in nodeOfInterest.parentNodes:
+      if parentNode != nil:
+        parentNode.isConnectedToEnd = true
+        connectedToEndNodeDeque.addLast(parentNode)
+  
+  instructionGraph
 
 proc withFlippedIndex(instructionSet: seq[Instruction], index: int): seq[Instruction] =
   var mutableInstructionSet = instructionSet
@@ -71,37 +133,29 @@ proc finalAccValue(instructionSet: seq[Instruction]): int =
     index += 1
   acc
 
-proc finishesAtEnd(instructionSet: seq[Instruction]): bool =
-  var acc = 0
-  var index = 0
-  var seenIndices = initHashSet[int]()
-  while index < instructionSet.len:
-    if seenIndices.containsOrIncl(index):
-      return false
-    let currentInstruction = instructionSet[index]
-    case currentInstruction.action:
-      of Action.acc:
-        acc += currentInstruction.value
-      of Action.jmp:
-        index += currentInstruction.value
-        continue
-      of Action.nop:
-        discard
-    index += 1
-  return true
-
 proc partA(input: string): int =
   let instructionSet = input.toInstructionSet()
   instructionSet.finalAccValue
 
 proc partB(input: string): int = 
   let instructionSet = input.toInstructionSet()
-  let flippableIndices = instructionSet.flippableIndices
-  for index in flippableIndices:
-    let flippedInstructionSet = instructionSet.withFlippedIndex(index)
-    if flippedInstructionSet.finishesAtEnd:
-      return flippedInstructionSet.finalAccValue
-  raise newException(SolveFailureError, "Could not find the right index to flip!")
+  let instructionGraph = instructionSet.toInstructionGraph()
+  var indexToFlip: int = -1
+  var seenNodeIndices = initHashSet[int]()
+  var nodeIndex = 0
+  var node = instructionGraph[nodeIndex]
+  while seenNodeIndices.len < instructionGraph.len:
+    nodeIndex = node.index
+    if node.alternativeChildNode != nil and node.alternativeChildNode.isConnectedToEnd:
+      indexToFlip = instructionGraph.find(node)
+      break
+    node = node.childNode
+    if seenNodeIndices.containsOrIncl(nodeIndex):
+      break
+  if indexToFlip >= 0:
+    return instructionSet.withFlippedIndex(indexToFlip).finalAccValue
+  else:
+    raise newException(SolveFailureError, "Could not find the right index to flip!")
 
 proc day8*(client: AoCClient, submit: bool) =
   let input = client.getInput(8)
