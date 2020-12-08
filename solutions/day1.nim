@@ -31,7 +31,8 @@ proc partA(input: seq[int], submit: bool, client: AoCClient) =
   let answer = ints[0] * ints[1]
   if submit:
     echo client.submitSolution(day=1, level=1, answer=intToStr(answer))
-  echo fmt("part A: {ints} multiply to {answer}")
+  else:
+    echo fmt("part A: {ints} multiply to {answer}")
 
 
 ########################################
@@ -73,7 +74,8 @@ proc partB(input: seq[int], submit: bool, client: AoCClient) =
   let answer = ints[0] * ints[1] * ints[2]
   if submit:
     echo client.submitSolution(day=1, level=2, answer=intToStr(answer))
-  echo fmt("part B: {ints} multiply to {answer}")
+  else:
+    echo fmt("part B: {ints} multiply to {answer}")
 
 #####################################################
 # Day 1 solutions

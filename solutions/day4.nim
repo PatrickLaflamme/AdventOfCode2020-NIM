@@ -95,14 +95,16 @@ proc day4*(client: AoCClient, submit: bool) =
   let input = client.getInput(4)
 
   let partAResult = partA(input)
-  echo fmt("Part A: {partAResult} valid passports")
   if submit:
     echo client.submitSolution(day = 4, level = 1, answer = partAResult.intToStr)
+  else:
+    echo fmt("Part A: {partAResult} valid passports")
 
   let partBResult = partB(input)
-  echo fmt("Part B: {partBResult} valid passports")
   if submit:
     echo client.submitSolution(day = 4, level = 2, answer = partBResult.intToStr)
+  else:
+    echo fmt("Part B: {partBResult} valid passports")
 
 
 #############################################

@@ -42,14 +42,16 @@ proc day6*(client: AoCClient, submit: bool) =
   let input = client.getInput(6)
 
   let partAResult = partA(input)
-  echo fmt("Part A: {partAResult} total \"yes\" responses")
   if submit:
     echo client.submitSolution(day = 6, level = 1, answer = partAResult.intToStr)
+  else:
+    echo fmt("Part A: {partAResult} total \"yes\" responses")
 
   let partBResult = partB(input)
-  echo fmt("Part B: {partBResult} total group-wide \"yes\" responses")
   if submit:
     echo client.submitSolution(day = 6, level = 2, answer = partBResult.intToStr)
+  else:
+    echo fmt("Part B: {partBResult} total group-wide \"yes\" responses")
 
 ######################################
 # Tests

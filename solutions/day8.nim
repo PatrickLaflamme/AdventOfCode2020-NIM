@@ -161,14 +161,16 @@ proc day8*(client: AoCClient, submit: bool) =
   let input = client.getInput(8)
 
   let partAResult = partA(input)
-  echo fmt("Part A: {partAResult} is the value of acc immediately before the loop begins")
   if submit:
     echo client.submitSolution(day = 8, level = 1, answer = partAResult.intToStr)
+  else:
+    echo fmt("Part A: {partAResult} is the value of acc immediately before the loop begins")
 
   let partBResult = partB(input)
-  echo fmt("Part B: {partBResult} is the value of acc when the instructions are change to exit an infinite loop")
   if submit:
     echo client.submitSolution(day = 8, level = 2, answer = partBResult.intToStr)
+  else:
+    echo fmt("Part B: {partBResult} is the value of acc when the instructions are change to exit an infinite loop")
 
 #########################################################
 # Tests

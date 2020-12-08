@@ -66,14 +66,16 @@ proc day5*(client: AoCClient, submit: bool) =
   let input = client.getInput(5)
 
   let partAResult = partA(input)
-  echo fmt("Part A: {partAResult} is the highest seat ID on a boarding pass")
   if submit:
     echo client.submitSolution(day = 5, level = 1, answer = partAResult.intToStr)
+  else:
+    echo fmt("Part A: {partAResult} is the highest seat ID on a boarding pass")
   
   let partBResult = partB(input)
-  echo fmt("Part B: {partBResult} is the missing seat ID (probably mine)")
   if submit:
     echo client.submitSolution(day = 5, level = 2, answer = partBResult.intToStr)
+  else:
+    echo fmt("Part B: {partBResult} is the missing seat ID (probably mine)")
 
 #############################################
 # Test

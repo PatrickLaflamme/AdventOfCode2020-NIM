@@ -76,14 +76,16 @@ proc day7*(client: AoCClient, submit: bool) =
   let input = client.getInput(7)
 
   let partAResult = partA(input)
-  echo fmt("Part A: {partAResult} bags could contain a shiny gold bags")
   if submit:
     echo client.submitSolution(day = 7, level = 1, answer = partAResult.intToStr)
+  else:
+    echo fmt("Part A: {partAResult} bags could contain a shiny gold bags")
 
   let partBResult = partB(input)
-  echo fmt("Part B: {partBResult} bags are required inside a single shiny gold bag")
   if submit:
     echo client.submitSolution(day = 7, level = 2, answer = partBResult.intToStr)
+  else:
+    echo fmt("Part B: {partBResult} bags are required inside a single shiny gold bag")
 
 
 

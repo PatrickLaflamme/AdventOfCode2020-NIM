@@ -74,14 +74,16 @@ proc day3*(client: AoCClient, submit: bool) =
   let input = client.getInput(3)
 
   let partAResult = partA(input)
-  echo fmt("Part A: {partAResult} trees hit")
   if submit:
     echo client.submitSolution(day = 3, level = 1, answer = partAResult.intToStr)
+  else:
+    echo fmt("Part A: {partAResult} trees hit")
   
   let partBResult = partB(input)
-  echo fmt("Part B: {partBResult} is the product of all trees hit for the 5 contant moves")
   if submit:
     echo client.submitSolution(day = 3, level = 2, answer = partBResult.intToStr)
+  else:
+    echo fmt("Part B: {partBResult} is the product of all trees hit for the 5 contant moves")
 
 
 

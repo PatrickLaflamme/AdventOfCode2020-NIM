@@ -91,14 +91,16 @@ proc day2*(client: AoCClient, submit: bool): void =
   let input = client.getInput(2)
 
   let partAResult = partA(input)
-  echo fmt("part A: {partAResult} valid passwords")
   if submit:
     echo client.submitSolution(day=2, level=1, answer=intToStr(partAResult))
+  else:
+    echo fmt("part A: {partAResult} valid passwords")
   
   let partBResult = partB(input)
-  echo fmt("part B: {partBResult} valid passwords")
   if submit:
     echo client.submitSolution(day=2, level=2, answer=intToStr(partBResult))
+  else:
+    echo fmt("part B: {partBResult} valid passwords")
 
 ##########################################
 # Tests
