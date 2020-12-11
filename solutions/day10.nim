@@ -30,7 +30,7 @@ proc partA(input: string): int = # O(N) runtime
   joltageDifferenceDist[3 - 1] += 1
   return joltageDifferenceDist[0] * joltageDifferenceDist[2]
 
-proc partB(input: string): int =
+proc partB(input: string): int = # O(N) runtime
   var inputArray = input.toIntArray()
   var inputSet = input.toIntSet()
   var seenAdapterCount = 0
