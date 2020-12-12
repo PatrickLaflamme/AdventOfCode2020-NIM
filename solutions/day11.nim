@@ -9,86 +9,77 @@ type
 
   WaitingLobbySpace = object
     spaceState: SpaceState
-    adjacentSpaces: seq[tuple[row: int, col: int]]
+    adjacentSpaces: seq[Coords]
 
   WaitingLobby = 
     seq[seq[WaitingLobbySpace]]
+  
+  Coords = tuple
+    row: int
+    col: int
 
-proc print(lobby: WaitingLobby) =
-  var rowStrings: seq[string] = @[]
-  for row in lobby:
-    var rowString = ""
-    for col in row:
-      var colChar: char
-      case col.spaceState:
-        of SpaceState.EMPTY:
-          colChar = 'L'
-        of SpaceState.OCCUPIED:
-          colChar = '#'
-        of SpaceState.FLOOR:
-          colChar = '.'
-      rowString.add(colChar)
-    rowStrings.add(rowString)
-  echo "---------"
-  echo rowStrings.join("\n")
-
-proc simpleNeighborStrat(hIndex: int, wIndex: int, lobby: WaitingLobby): seq[tuple[row: int, col: int]] =
-  var adjacentSpaces: seq[tuple[row: int, col: int]]= @[]
+proc simpleNeighborStrat(hIndex: int, wIndex: int, lobby: WaitingLobby): seq[Coords] =
+  var adjacentSpaces: seq[Coords]= @[]
   for i in -1..1:
     for j in -1..1:
       if i != 0 or j != 0:
         var adjacentRow = hIndex + i
         var adjacentCol = wIndex + j
-        if adjacentCol >= 0 and adjacentCol < lobby.len and adjacentRow >= 0 and adjacentRow < lobby[0].len:
+        if adjacentCol >= 0 and adjacentRow < lobby.len and adjacentRow >= 0 and adjacentCol < lobby[0].len:
           adjacentSpaces.add((adjacentRow, adjacentCol))
   adjacentSpaces
 
-proc plus(self: tuple[row: int, col: int], other: tuple[row: int, col: int]): tuple[row: int, col: int] =
+proc plus(self: Coords, other: Coords): Coords =
   (self.row + other.row, self.col + other.col)
 
-proc unitDirection(xy: tuple[row: int, col: int]): tuple[row: int, col: int] = 
-  # todo: flip the checks so the col/row order matches the tuple.
-  if xy.col < 0 and xy.row < 0:
+proc minus(self: Coords, other: Coords): Coords =
+  (self.row - other.row, self.col - other.col)
+
+proc unitDirection(self: Coords, reff: Coords): Coords = 
+  let xy = self.minus(reff)
+  if xy.row < 0 and xy.col < 0:
     (-1, -1)
-  elif xy.col == 0 and xy.row < 0:
+  elif xy.row < 0 and xy.col == 0:
     (-1, 0)
-  elif xy.col > 0 and xy.row < 0:
+  elif xy.row < 0 and xy.col > 0:
     (-1, 1)
-  elif xy.col > 0 and xy.row == 0:
+  elif xy.row == 0 and xy.col > 0:
     (0, 1)
-  elif xy.col > 0 and xy.row > 0:
+  elif xy.row > 0 and xy.col > 0:
     (1, 1)
-  elif xy.col == 0 and xy.row > 0:
+  elif xy.row > 0 and xy.col == 0:
     (1, 0)
-  elif xy.col < 0 and xy.row > 0:
+  elif xy.row > 0 and xy.col < 0:
     (1, -1)
-  elif xy.col < 0 and xy.row == 0:
+  elif xy.row == 0 and xy.col < 0:
     (0, -1)
   else:
     raise newException(ValueError, fmt("{xy} is not a direction!"))
 
-proc visibleSeatStrat(hIndex: int, wIndex: int, lobby: WaitingLobby): seq[tuple[row: int, col: int]] =
-  var adjacentSpaces: seq[tuple[row: int, col: int]]= @[]
-  var spacesToCheck = initDeque[tuple[row: int, col: int]]()
+proc visibleSeatStrat(hIndex: int, wIndex: int, lobby: WaitingLobby): seq[Coords] =
+  let seatCoords = (hIndex, wIndex)
+  var adjacentSpaces: seq[Coords]= @[]
+  var spacesToCheck = initDeque[Coords]()
   for i in -1..1:
     for j in -1..1:
       if i != 0 or j != 0:
         var adjacentRow = hIndex + i
         var adjacentCol = wIndex + j
-        if adjacentCol >= 0 and adjacentCol < lobby.len and adjacentRow >= 0 and adjacentRow < lobby[0].len:
+        if adjacentCol >= 0 and adjacentCol < lobby[0].len and adjacentRow >= 0 and adjacentRow < lobby.len:
           spacesToCheck.addLast((adjacentRow, adjacentCol))
   while spacesToCheck.len > 0:
     let spaceToCheck = spacesToCheck.popFirst()
-    case lobby[spaceToCheck.row][spaceToCheck.col]:
-      of SpaceState.FLOOR:
-        spacesToCheck.addLast(spaceToCheck.plus(spaceToCheck.unitDirection))
-      else:
-        adjacentSpaces.add(spaceToCheck)
+    if lobby[spaceToCheck.row][spaceToCheck.col].spaceState == SpaceState.FLOOR:
+      let newSpaceToCheck = spaceToCheck.plus(spaceToCheck.unitDirection(seatCoords))
+      if newSpaceToCheck.row >= 0 and newSpaceToCheck.row < lobby.len and newSpaceToCheck.col >= 0 and newSpaceToCheck.col < lobby[0].len:
+        spacesToCheck.addLast(newSpaceToCheck)
+    else:
+      adjacentSpaces.add(spaceToCheck)
   adjacentSpaces
 
 proc toWaitingLobby(
   input: string, 
-  adjacentSeatStrat: proc (hIndex: int, wIndex: int, lobby: WaitingLobby): seq[tuple[row: int, col: int]]
+  adjacentSeatStrat: proc (hIndex: int, wIndex: int, lobby: WaitingLobby): seq[Coords]
 ): WaitingLobby =
   let lobbyRows = input.splitLines().filter(x => x != "")
   var waitingLobby: WaitingLobby = @[]
@@ -118,7 +109,7 @@ proc toWaitingLobby(
         waitingLobby[hIndex][wIndex].adjacentSpaces.add(indices)
   waitingLobby
 
-proc timeStep(lobby: WaitingLobby): WaitingLobby =
+proc timeStepWithNeighborTolerance(lobby: WaitingLobby, neighborTolerance: int): WaitingLobby =
   var nextLobby = lobby
   for hIndex, row in nextLobby:
     for wIndex, space in row:
@@ -132,7 +123,7 @@ proc timeStep(lobby: WaitingLobby): WaitingLobby =
           occupiedNeighbors += 1
       if space.spaceState == SpaceState.EMPTY and occupiedNeighbors == 0:
         nextSpace.spaceState = SpaceState.OCCUPIED
-      elif space.spaceState == SpaceState.OCCUPIED and occupiedNeighbors >= 4:
+      elif space.spaceState == SpaceState.OCCUPIED and occupiedNeighbors >= neighborTolerance:
         nextSpace.spaceState = SpaceState.EMPTY
       nextLobby[hIndex][wIndex] = nextSpace
   nextLobby
@@ -147,16 +138,16 @@ proc occupiedSeats(lobby: WaitingLobby): int =
 
 proc partA(input: string): int =
   let initialLobby = input.toWaitingLobby(simpleNeighborStrat)
-  var lobbyStates = @[initialLobby, initialLobby.timeStep()]
+  var lobbyStates = @[initialLobby, initialLobby.timeStepWithNeighborTolerance(4)]
   while lobbyStates[^1] != lobbyStates[^2]:
-    lobbyStates.add(lobbyStates[^1].timeStep())
+    lobbyStates.add(lobbyStates[^1].timeStepWithNeighborTolerance(4))
   lobbyStates[^1].occupiedSeats
 
 proc partB(input: string): int =
   let initialLobby = input.toWaitingLobby(visibleSeatStrat)
-  var lobbyStates = @[initialLobby, initialLobby.timeStep()]
+  var lobbyStates = @[initialLobby, initialLobby.timeStepWithNeighborTolerance(5)]
   while lobbyStates[^1] != lobbyStates[^2]:
-    lobbyStates.add(lobbyStates[^1].timeStep())
+    lobbyStates.add(lobbyStates[^1].timeStepWithNeighborTolerance(5))
   lobbyStates[^1].occupiedSeats
 
 proc day11*(client: AoCClient, submit: bool) =
@@ -192,4 +183,4 @@ L.LLLLL.LL
 """
 
 doAssert partA(testInput) == 37
-doAssert partB(testInput) == 26
+doAssert partB(testInput) == 26 
