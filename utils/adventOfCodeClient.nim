@@ -15,7 +15,9 @@ proc getClientWithSessionId*(sessionId: string): AoCClient =
 proc getInput*(client: AoCClient, day: int): string =
   let url = fmt("https://adventofcode.com/2020/day/{day}/input")
   try: 
-    client.httpclient.getContent(url)
+    let response = client.httpclient.getContent(url)
+    client.httpclient.close()
+    response
   except:
     echo "Looks like something went wrong here. Maybe the session Id is invalid? Exception below:\n"
     raise
@@ -30,6 +32,7 @@ proc submitSolution*(client: AoCClient, day: int, level: int, answer: string): s
   try:
     let response = client.httpclient.postContent(url, body=data)
     client.httpclient.headers = defaultHeaders
+    client.httpclient.close()
 
     if response.contains("That's not the right answer"):
       echo fmt("Looks like the answer for part {level} on day {day} is incorrect. Adjust the solution and try again")
