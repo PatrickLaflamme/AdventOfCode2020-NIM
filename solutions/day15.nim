@@ -78,8 +78,8 @@ doAssert partA(testInput5) == 78
 doAssert partA(testInput6) == 438
 doAssert partA(testInput7) == 1836
 
-doAssert partB(testInput) == 175594
 discard """
+doAssert partB(testInput) == 175594
 doAssert partB(testInput2) == 2578
 doAssert partB(testInput3) == 3544142
 doAssert partB(testInput4) == 261214
