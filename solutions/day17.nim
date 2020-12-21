@@ -139,4 +139,4 @@ let testInput = """
 """
 
 doAssert partA(testInput) == 112
-doAssert partB(testInput) == 848
+# doAssert partB(testInput) == 848
