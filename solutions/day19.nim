@@ -98,16 +98,16 @@ proc day19*(client: AoCClient, submit: bool) =
   let day = 19
   let input = client.getInput(day)
 
-  let partAmathmathmatchValue = partA(input)
+  let partAResult = partA(input)
   if submit:
-    echo client.submitSolution(day = day, level = 1, answer = partAmathmathmatchValue.intToStr)
+    echo client.submitSolution(day = day, level = 1, answer = partAResult.intToStr)
   else:
-    echo fmt("Part A: {partAmathmathmatchValue} is the number of valid messages")
-  let partBmathmathmatchValue = partB(input)
+    echo fmt("Part A: {partAResult} is the number of valid messages")
+  let partBResult = partB(input)
   if submit:
-    echo client.submitSolution(day = day, level = 2, answer = partBmathmathmatchValue.intToStr)
+    echo client.submitSolution(day = day, level = 2, answer = partBResult.intToStr)
   else:
-    echo fmt("Part B: {partBmathmathmatchValue} is the number of valid messages with the new loop rules.")
+    echo fmt("Part B: {partBResult} is the number of valid messages with the new loop rules.")
 
 #############################################
 # Tests
