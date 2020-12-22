@@ -1,46 +1,19 @@
-import math, os, sequtils, strformat, strutils, sugar, tables
+import os, sequtils, strformat, strutils, sugar
 import ../utils/adventOfCodeClient
 
 proc partA(input: string, targetIndex = 2020): int =
-  let startNumbers = input.split(",")
+  let startSequence = input.split(",")
     .map(x => x.replace("\n", ""))
     .map(x => x.parseInt())
-  var seenNumbers = initOrderedTable[int, int]()
-  for i, startNum in startNumbers:
-    seenNumbers[startNum] = i + 1
-  var index = startNumbers.len + 1
-  var currentDigit: int
-  var previousDigit = startNumbers[^1]
-  while index <= targetIndex:
-    let lastSeen = seenNumbers.getOrDefault(previousDigit)
-    if lastSeen > 0:
-      currentDigit = index - 1 - lastSeen
-    else:
-      currentDigit =  0
-    seenNumbers[previousDigit] = index - 1
-    previousDigit = currentDigit
-    index += 1
-  return currentDigit
-
-proc nextNumber(numberHistory: var OrderedTable[int, int], currentTurn: int,
-  lastNumber: int): int =
-  let lastTurn = numberHistory.getOrDefault(lastNumber)
-  let nextNumber = (if lastTurn == 0: 0 else: currentTurn - lastTurn)
-  numberHistory[lastNumber] = currentTurn
-  return nextNumber
+  var seenNumbers = newSeq[int](targetIndex)
+  for i, n in startSequence: seenNumbers[n] = i + 1
+  for i in startSequence.len + 1 ..< targetIndex:
+    let diff = i - seenNumbers[result]
+    seenNumbers[result] = i
+    result = if diff == i: 0 else: diff
 
 proc partB(input: string): int =
-  let puzzleInput = input.split(",")
-      .map(x => x.replace("\n", ""))
-      .map(x => x.parseInt())
-  var numberHistory = initOrderedTable[int, int]()
-  for turn, number in puzzleInput[0..^2]:
-    numberHistory[number] = turn + 1
-  var lastNumber = puzzleInput[^1]
-  let startingTurn = numberHistory.len + 1
-  for currentTurn in startingTurn .. 30000000 - 1 :
-    lastNumber = nextNumber(numberHistory, currentTurn, lastNumber)
-  return lastNumber
+  partA(input, targetIndex = 30_000_000)
 
 proc day15*(client: AoCClient, submit: bool) =
   let day = 15
@@ -78,7 +51,6 @@ doAssert partA(testInput5) == 78
 doAssert partA(testInput6) == 438
 doAssert partA(testInput7) == 1836
 
-discard """
 doAssert partB(testInput) == 175594
 doAssert partB(testInput2) == 2578
 doAssert partB(testInput3) == 3544142
@@ -86,4 +58,3 @@ doAssert partB(testInput4) == 261214
 doAssert partB(testInput5) == 6895259
 doAssert partB(testInput6) == 18
 doAssert partB(testInput7) == 362
-"""

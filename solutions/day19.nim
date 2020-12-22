@@ -194,5 +194,4 @@ aabbbbbaabbbaaaaaabbbbbababaaaaabbaaabba
 doAssert partA(testInput) == 2
 doAssert partA(testInput2) == 2
 doAssert partA(testInput3) == 3
-echo partB(testInput3)
 doAssert partB(testInput3) == 12
