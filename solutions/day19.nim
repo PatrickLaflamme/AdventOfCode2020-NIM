@@ -30,12 +30,6 @@ proc regexForRule(this: RuleNode): string =
   let regexString = ors.join("|")
   return fmt("({regexString})")
 
-proc toString(this: RuleNode): string = 
-  var ruleSet = this.validValues.map(x => x.map(x => x.number.intToStr()).join(" ")).join(" | ")
-  if ruleSet.len == 0:
-    ruleSet = fmt("\"{this.value}\"")
-  fmt("{this.number}: {ruleSet}")
-
 proc createRuleSet(input: string): Table[int, RuleNode] =
   let ruleLines = input.splitLines().filter(x => x.len >= 1).filter(x => x[0].isDigit())
   var ruleSet: Table[int, RuleNode]
@@ -83,7 +77,6 @@ proc partB(input: string): int =
   let regexForRule31 = re(generatedRegex31)
   var validMessages: int
   for message in messages:
-    var match = true
     var index, count42, count31: int
     while index < message.len:
       let matchLoc = message.findBounds(regexForRule42, start=index)
