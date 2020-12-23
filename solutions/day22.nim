@@ -6,9 +6,9 @@ type
     c1: int
     c2: int
 
-  GameState = tuple
-    p1: Deque[int]
-    p2: Deque[int]
+  GameState = ref object
+    p1: seq[int]
+    p2: seq[int]
     seenStates: HashSet[string]
     gameNumber: int
     roundNumber: int
@@ -16,7 +16,7 @@ type
 
 const noPending: PendingRound = (-1, -1)
 
-proc parseInput(input: string): tuple[p1: Deque[int], p2: Deque[int]] =
+proc parseInputDeque(input: string): tuple[p1: Deque[int], p2: Deque[int]] =
   let twoPlayers = input.split("\n\n")
     .map(p => (
       block:
@@ -31,75 +31,98 @@ proc parseInput(input: string): tuple[p1: Deque[int], p2: Deque[int]] =
     )
   return (p1: twoPlayers[0], p2: twoPlayers[1])
 
-proc recursiveCombat(p1start: Deque[int], p2start: Deque[int]): int =
-  let initialGameState: GameState = (p1: p1start, p2: p2start, seenStates: initHashSet[string](), gameNumber: 1, roundNumber: 1, pending: noPending)
-  var gameStates = initDeque[GameState]()
-  gameStates.addFirst(initialGameState)
+proc parseInputSeq(input: string): tuple[p1: seq[int], p2: seq[int]] =
+  let twoPlayers = input.split("\n\n")
+    .map(p => (
+      block:
+        p.splitLines()
+          .filter(x => x != "" and ":" notin x)
+          .map(x => x.parseInt())
+      )
+    )
+  return (p1: twoPlayers[0], p2: twoPlayers[1])
+
+proc recursiveCombat(p1start: seq[int], p2start: seq[int]): int =
+  var gameState: GameState
+  new(gameState)
+  gameState.p1 = p1start
+  gameState.p2 = p2start
+  gameState.seenStates = initHashSet[string]()
+  gameState.gameNumber = 1
+  gameState.roundNumber = 1
+  gameState.pending = noPending
+
+  var gameStates = @[gameState]
   var winner: int
-  var winningDeck: Deque[int]
+  var winningDeck: seq[int]
   var gameCount = 1
   while gameStates.len > 0:
-    var (p1, p2, seenStates, gameNumber, roundNumber, pending) = gameStates.popFirst()
-    # echo fmt("Round {roundNumber} (Game {gameNumber}): {p1} - {p2} seenStates: {seenStates}")
-    let currentState = fmt("{p1}{p2}")
-    if currentState in seenStates:
-      winningDeck = p1
-      break
+    var state = gameStates[^1]
+    let currentState = fmt("{state.p1}{state.p2}")
+    if currentState in state.seenStates and state.pending == noPending:
+      winningDeck = state.p1
+      winner = -1
+      gameStates.delete(gameStates.len - 1, gameStates.len - 1)
+      continue
     else:
-      seenStates.incl(currentState)
-    let c1 = if pending.c1 >= 0: pending.c1 else: p1.popFirst()
-    let c2 = if pending.c2 >= 0: pending.c2 else: p2.popFirst()
-    if pending != noPending:
+      state.seenStates.incl(currentState)
+    let c1 = if state.pending.c1 >= 0: state.pending.c1 else: state.p1[0]
+    let c2 = if state.pending.c2 >= 0: state.pending.c2 else: state.p2[0]
+    if state.pending != noPending:
+      state.p1.delete(0, 0)
+      state.p2.delete(0, 0)
       if winner < 0:
-        p1.addLast(c1)
-        p1.addLast(c2)
+        state.p1.add(c1)
+        state.p1.add(c2)
       elif winner > 0:
-        p2.addLast(c2)
-        p2.addLast(c1)
+        state.p2.add(c2)
+        state.p2.add(c1)
       else:
         raise newException(ValueError, "something went really wrong over here...")
       winner = 0
-    elif p1.len >= c1 and p2.len >= c2:
-      gameStates.addFirst((p1, p2, seenStates, gameNumber, roundNumber, (c1: c1, c2: c2)))
-      var p1copy = p1
-      p1copy.shrink(fromLast = p1copy.len - c1)
-      var p2copy = p2 
-      p2copy.shrink(fromLast = p2copy.len - c2)
+      state.pending = noPending
+    elif state.p1.len > c1 and state.p2.len > c2:
+      state.pending = (c1: c1, c2: c2)
+      gameStates[^1] = state
       inc gameCount
-      gameStates.addFirst((p1copy, p2copy, initHashSet[string](), gameCount, 1, noPending))
-      # echo fmt("new game: {gameCount}, nested inside {gameNumber} on round {roundNumber}. nested depth: {gameStates.len}")
+      var childGame: GameState
+      new(childGame)
+      childGame.p1 = state.p1[1..c1]
+      childGame.p2 = state.p2[1..c2]
+      childGame.seenStates = initHashSet[string]()
+      childGame.gameNumber = gameCount
+      childGame.roundNumber = 1
+      childGame.pending = noPending
+      gameStates.add(childGame)
       continue
     elif c1 > c2:
-      p1.addLast(c1)
-      p1.addLast(c2)
+      state.p1.delete(0, 0)
+      state.p2.delete(0, 0)
+      state.p1.add(c1)
+      state.p1.add(c2)
     else:
-      p2.addLast(c2)
-      p2.addLast(c1)
+      state.p1.delete(0, 0)
+      state.p2.delete(0, 0)
+      state.p2.add(c2)
+      state.p2.add(c1)
     
-    if p1.len > 0 and p2.len > 0:
-      gameStates.addFirst((p1, p2, seenStates, gameNumber, roundNumber + 1, noPending))
-    elif p1.len > 0:
+    if state.p2.len == 0 and state.p1.len > 0:
       winner = -1
-      winningDeck = p1
-    elif p2.len > 0:
+      winningDeck = state.p1
+      gameStates.delete(gameStates.len - 1, gameStates.len - 1)
+    elif state.p1.len == 0 and state.p2.len > 0:
       winner = 1
-      winningDeck = p2
+      winningDeck = state.p2
+      gameStates.delete(gameStates.len - 1, gameStates.len - 1)
     else:
-      raise newException(ValueError, "something went really wrong...")
-  if gameStates.len > 0:
-    var lastState = gameStates.popFirst()
-    winningDeck = lastState.p1
-    if lastState.pending != noPending:
-      winningDeck.addFirst(lastState.pending.c1)
-    echo lastState
-    echo winningDeck
+      inc state.roundNumber
   var remainingCards = winningDeck.len
   while remainingCards > 0:
-    result += winningDeck.popFirst() * remainingCards
+    result += winningDeck[^remainingCards] * remainingCards
     dec remainingCards
 
 proc partA(input: string): int =
-  var (p1, p2) = input.parseInput()
+  var (p1, p2) = input.parseInputDeque()
   while p1.len > 0 and p2.len > 0:
     let c1 = p1.popFirst()
     let c2 = p2.popFirst()
@@ -116,7 +139,7 @@ proc partA(input: string): int =
     dec remainingCards
 
 proc partB(input: string): int =
-  let (p1, p2) = input.parseInput()
+  let (p1, p2) = input.parseInputSeq()
   result = recursiveCombat(p1, p2)
   # echo result
 
