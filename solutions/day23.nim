@@ -1,5 +1,5 @@
-import sequtils, sets, strformat, strutils, sugar
-import ../utils/adventOfCodeClient, ../utils/savedSessionId
+import sequtils, strformat, strutils, sugar
+import ../utils/adventOfCodeClient
 
 type
   Cup = ref object
@@ -100,7 +100,7 @@ proc day23*(client: AoCClient, submit: bool) {.gcsafe.} =
   else:
     echo fmt("Part A: {partAResult} is the order after 100 rounds.")
 
-  let partBResult = if hasCachedResult(input, 2): getCachedResult(input, 2) else: partB(input)
+  let partBResult = partB(input)
   if submit:
     echo client.submitSolution(day = day, level = 2, answer = partBResult.intToStr)
   else:

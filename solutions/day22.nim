@@ -1,5 +1,5 @@
 import deques, math, sequtils, sets, strformat, strutils, sugar
-import ../utils/adventOfCodeClient, ../utils/savedSessionId
+import ../utils/adventOfCodeClient
 
 type
   PendingRound = tuple
@@ -153,7 +153,7 @@ proc day22*(client: AoCClient, submit: bool) {.gcsafe.} =
   else:
     echo fmt("Part A: {partAResult} is the winning player's score in the game of Combat")
   
-  let partBResult = if hasCachedResult(input, 2): getCachedResult(input, 2) else: partB(input)
+  let partBResult = partB(input)
   if submit:
     echo client.submitSolution(day = day, level = 2, answer = partBResult.intToStr)
   else:
