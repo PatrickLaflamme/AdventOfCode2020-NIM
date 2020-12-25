@@ -19,6 +19,7 @@ import solutions/day1,
        solutions/day17,
        solutions/day18,
        solutions/day19,
+       solutions/day21,
        solutions/day22,
        solutions/day23,
        solutions/day24
@@ -45,7 +46,7 @@ let solutions = @[
   (client: AoCClient, submit: bool) => day18(client, submit),
   (client: AoCClient, submit: bool) => day19(client, submit),
   (client: AoCClient, submit: bool) => day19(client, submit),
-  (client: AoCClient, submit: bool) => day19(client, submit),
+  (client: AoCClient, submit: bool) => day21(client, submit),
   (client: AoCClient, submit: bool) => day22(client, submit),
   (client: AoCClient, submit: bool) => day23(client, submit),
   (client: AoCClient, submit: bool) => day24(client, submit)
